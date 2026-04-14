@@ -3,6 +3,7 @@ package com.elbakali.vehicle_aggregator.service;
 import com.elbakali.vehicle_aggregator.client.NhtsaClient;
 import com.elbakali.vehicle_aggregator.dto.NhtsaVariable;
 import com.elbakali.vehicle_aggregator.dto.VehicleSummary;
+import com.elbakali.vehicle_aggregator.dto.RecallResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.ReactiveRedisTemplate;
@@ -31,6 +32,8 @@ public class VehicleService {
     private final ObjectMapper objectMapper;
 
     private static final String CACHE_PREFIX = "vehicle::";
+
+    private static final String RECALLS_CACHE_PREFIX = "recalls::";
 
     // Configured Time-To-Live (TTL) for cached vehicle profiles
     private static final Duration CACHE_TTL = Duration.ofDays(30);
@@ -106,5 +109,42 @@ public class VehicleService {
                 .map(NhtsaVariable::value)
                 .findFirst()
                 .orElse("N/A");
+    }
+
+    /**
+     * Retrieves safety recalls for a specific VIN.
+     * Implements a Redis cache-aside pattern. On cache miss, it dynamically decodes the VIN
+     * to extract the Make, Model, and Year before querying the NHTSA Recalls API.
+     *
+     * @param vin The sanitized 17-character Vehicle Identification Number.
+     * @return A Mono emitting the RecallResponse payload.
+     */
+    public Mono<RecallResponse> getVehicleRecalls(String vin) {
+        String cacheKey = RECALLS_CACHE_PREFIX + vin;
+
+        return redisTemplate.opsForValue().get(cacheKey)
+                .doOnNext(obj -> log.info("Cache hit for recalls, VIN: {}", vin))
+                .map(obj -> objectMapper.convertValue(obj, RecallResponse.class))
+                .switchIfEmpty(Mono.defer(() -> fetchAndCacheRecalls(vin, cacheKey)));
+    }
+
+    /**
+     * Fallback method invoked on a recall cache miss.
+     * Chains the existing VIN decoding service directly into the Recalls API client call.
+     */
+    private Mono<RecallResponse> fetchAndCacheRecalls(String vin, String cacheKey) {
+        log.info("Cache miss. Fetching recalls from NHTSA API for VIN: {}", vin);
+
+        // 1. Call our existing method to decode the VIN (this will hit the vehicle cache if it exists!)
+        return getVehicleSummary(vin)
+
+                // 2. flatMap chaining: Wait for the summary, extract the data, and trigger the 2nd API call
+                .flatMap(summary -> nhtsaClient.fetchRecalls(summary.make(), summary.model(), summary.year()))
+
+                // 3. Save the final recall data to Redis and return it to the user
+                .flatMap(recallResponse ->
+                        redisTemplate.opsForValue().set(cacheKey, recallResponse, CACHE_TTL)
+                                .thenReturn(recallResponse)
+                );
     }
 }
