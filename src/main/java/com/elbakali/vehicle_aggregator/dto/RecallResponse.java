@@ -1,6 +1,6 @@
 package com.elbakali.vehicle_aggregator.dto;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonAlias;
 import java.util.List;
 
 /**
@@ -9,13 +9,13 @@ import java.util.List;
  */
 public record RecallResponse(
 
-        @JsonProperty("Count")
+        @JsonAlias("Count")
         int count,
 
-        @JsonProperty("Message")
+        @JsonAlias("Message")
         String message,
 
-        @JsonProperty("results")
+        @JsonAlias("Results")
         List<RecallSummary> results
 ) {
 }

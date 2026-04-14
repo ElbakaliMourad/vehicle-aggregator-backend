@@ -1,6 +1,6 @@
 package com.elbakali.vehicle_aggregator.dto;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonAlias;
 
 /**
  * A Data Transfer Object (DTO) representing a single vehicle safety recall.
@@ -8,22 +8,22 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  */
 public record RecallSummary(
 
-        @JsonProperty("NHTSACampaignNumber")
+        @JsonAlias("NHTSACampaignNumber")
         String campaignNumber,
 
-        @JsonProperty("ReportReceivedDate")
+        @JsonAlias("ReportReceivedDate")
         String reportReceivedDate,
 
-        @JsonProperty("Component")
+        @JsonAlias("Component")
         String component,
 
-        @JsonProperty("Summary")
+        @JsonAlias("Summary")
         String summary,
 
-        @JsonProperty("Consequence")
+        @JsonAlias("Consequence")
         String consequence,
 
-        @JsonProperty("Remedy")
+        @JsonAlias("Remedy")
         String remedy
 ) {
 }
