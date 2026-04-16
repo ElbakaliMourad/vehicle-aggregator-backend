@@ -90,7 +90,7 @@ public class VehicleService {
                 VehicleUtils.formatTitleCase(extractValue(results, 28)),         // Model
                 extractValue(results, 29),                                       // Model Year
                 extractValue(results, 38),                                       // Trim
-                extractValue(results, 5),                                        // Body Class
+                VehicleUtils.normalizeBodyClass(extractValue(results, 5)),       // Body Class
                 VehicleUtils.normalizeDriveType(extractValue(results, 15)),      // Drive Type
                 extractValue(results, 24),                                       // Fuel Type - Primary
                 extractValue(results, 9),                                        // Engine Number of Cylinders

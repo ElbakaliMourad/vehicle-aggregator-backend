@@ -98,4 +98,38 @@ public class VehicleUtils {
         // Return the original string if it doesn't match our expected formats
         return driveType;
     }
+
+    /**
+     * Normalizes complex NHTSA body class descriptions into clean, single-word categories.
+     * Example: "Sport Utility Vehicle (SUV)/Multi-Purpose Vehicle (MPV)" -> "SUV"
+     *
+     * @param bodyClass The raw body class string.
+     * @return A simplified body class, or the original string if no match is found.
+     */
+    public static String normalizeBodyClass(String bodyClass) {
+        if (!StringUtils.hasText(bodyClass)) {
+            return "N/A";
+        }
+
+        // Force to uppercase immediately to avoid case-sensitive matching issues
+        String upper = bodyClass.toUpperCase();
+
+        // Check for common keywords using ALL CAPS
+        if (upper.contains("SPORT UTILITY") || upper.contains("SUV")) {
+            return "SUV";
+        } else if (upper.contains("SEDAN")) {
+            return "Sedan";
+        } else if (upper.contains("PICKUP") || upper.contains("TRUCK")) {
+            return "Pickup";
+        } else if (upper.contains("HATCHBACK")) {
+            return "Hatchback";
+        } else if (upper.contains("COUPE")) {
+            return "Coupe";
+        } else if (upper.contains("MULTI-PURPOSE") || upper.contains("MPV") || upper.contains("VAN")) {
+            return "Van/MPV";
+        }
+
+        // Return the original string formatted nicely if it doesn't match our specific list
+        return formatTitleCase(bodyClass);
+    }
 }

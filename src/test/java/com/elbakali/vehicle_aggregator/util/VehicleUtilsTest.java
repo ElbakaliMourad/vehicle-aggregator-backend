@@ -59,4 +59,24 @@ class VehicleUtilsTest {
         // Test null safety
         assertEquals("N/A", VehicleUtils.normalizeDriveType(null));
     }
+
+    /**
+     * Verifies that long, complex body class descriptions from the government API
+     * are accurately simplified into user-friendly UI categories.
+     */
+    @Test
+    void testNormalizeBodyClass() {
+        // Test the exact messy string we found from the NHTSA API
+        assertEquals("SUV", VehicleUtils.normalizeBodyClass("Sport Utility Vehicle (SUV)/Multi-Purpose Vehicle (MPV)"));
+
+        // Test other common variations
+        assertEquals("Sedan", VehicleUtils.normalizeBodyClass("Sedan/Saloon"));
+        assertEquals("Pickup", VehicleUtils.normalizeBodyClass("Pickup Truck"));
+
+        // Test our fallback logic (if it doesn't match, it should Title Case it)
+        assertEquals("Motorcycle", VehicleUtils.normalizeBodyClass("MOTORCYCLE"));
+
+        // Test null safety
+        assertEquals("N/A", VehicleUtils.normalizeBodyClass(null));
+    }
 }
