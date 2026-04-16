@@ -4,6 +4,7 @@ import com.elbakali.vehicle_aggregator.client.NhtsaClient;
 import com.elbakali.vehicle_aggregator.dto.NhtsaVariable;
 import com.elbakali.vehicle_aggregator.dto.VehicleSummary;
 import com.elbakali.vehicle_aggregator.dto.RecallResponse;
+import com.elbakali.vehicle_aggregator.util.VehicleUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.ReactiveRedisTemplate;
@@ -80,19 +81,20 @@ public class VehicleService {
 
     /**
      * Maps the raw NHTSA variable list into the application's normalized DTO.
+     * Now integrates VehicleUtils to sanitize messy data before it is cached or sent to the client.
      */
     private VehicleSummary buildSummary(String vin, List<NhtsaVariable> results) {
         return new VehicleSummary(
                 vin,
-                extractValue(results, 26), // Make
-                extractValue(results, 28), // Model
-                extractValue(results, 29), // Model Year
-                extractValue(results, 38), // Trim
-                extractValue(results, 5),  // Body Class
-                extractValue(results, 15), // Drive Type
-                extractValue(results, 24), // Fuel Type - Primary
-                extractValue(results, 9),  // Engine Number of Cylinders
-                extractValue(results, 13)  // Displacement (L)
+                VehicleUtils.formatTitleCase(extractValue(results, 26)),         // Make
+                VehicleUtils.formatTitleCase(extractValue(results, 28)),         // Model
+                extractValue(results, 29),                                       // Model Year
+                extractValue(results, 38),                                       // Trim
+                extractValue(results, 5),                                        // Body Class
+                VehicleUtils.normalizeDriveType(extractValue(results, 15)),      // Drive Type
+                extractValue(results, 24),                                       // Fuel Type - Primary
+                extractValue(results, 9),                                        // Engine Number of Cylinders
+                VehicleUtils.formatDisplacement(extractValue(results, 13))       // Displacement (L)
         );
     }
 
